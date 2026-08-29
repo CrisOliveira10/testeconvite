@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Convite Especial Teste</title>
+    <title>Convite Especial</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
@@ -14,7 +14,6 @@
         .story-container {
             width: 100%; max-width: 56.25dvh; height: 100dvh; position: relative; overflow: hidden;
         }
-       /* Transição Cinematográfica com Blur e Zoom */
         .page {
             position: absolute; 
             top: 0; 
@@ -25,12 +24,8 @@
             background-position: center;
             opacity: 0; 
             visibility: hidden;
-            
-            /* O segredo: Blur inicial e um leve zoom */
             filter: blur(20px); 
             transform: scale(1.05); 
-            
-            /* Duração de 1 segundo para ficar bem fluido */
             transition: opacity 1s ease, filter 1s ease, transform 1s ease;
             z-index: 10;
         }
@@ -38,14 +33,13 @@
         .page.active { 
             opacity: 1; 
             visibility: visible;
-            filter: blur(0px); /* O borrão desaparece quando a página ativa */
-            transform: scale(1); /* O zoom volta ao normal */
+            filter: blur(0px);
+            transform: scale(1);
         }
         
-        /* Drag P1 */
         #drag-el {
             position: fixed;
-            bottom: 12%; /* Inicia na posição de retorno */
+            bottom: 12%;
             left: 50%;
             transform: translateX(-50%);
             width: 80px;
@@ -57,7 +51,7 @@
             z-index: 9999;
             cursor: grab;
             touch-action: none;
-            animation: pulsar 2s infinite ease-in-out; /* Efeito de pulsar */
+            animation: pulsar 2s infinite ease-in-out;
         }
 
         @keyframes pulsar {
@@ -66,10 +60,8 @@
             100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
         }
 
-        /* P2 Video */
         #video-p2 { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Controles Laterais (Pular / Som) */
         .controls-row {
             position: absolute; bottom: 30px; left: 20px; right: 20px;
             display: flex; justify-content: space-between; z-index: 100; pointer-events: none;
@@ -80,7 +72,6 @@
             font-size: 12px; font-weight: bold; cursor: pointer; backdrop-filter: blur(4px);
         }
 
-        /* Hotspots & Retorno */
         .hotspot { position: absolute; z-index: 40; cursor: pointer; }
         .btn-back {
             position: absolute; top: 20px; left: 20px; padding: 8px 16px;
@@ -109,13 +100,13 @@
         </div>
 
         <div id="page-3" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/menu.jpg_kgwtuj.jpg');">
-      <a href="https://agatha-crispopartecombr.netlify.app/" target="_blank" class="hotspot" style="top:56.19%; left:22.25%; width:13.38%; height:8.32%;"></a>
-      <div class="hotspot" onclick="goToPage(4)" style="top:55.22%; left:63.45%; width:13.38%; height:6.96%;"></div>
-      <a href="https://maps.app.goo.gl/kRJF5FtbszjYeR8n7" target="_blank" class="hotspot" style="top:55.11%; left:44.44%; width:12.32%; height:9.67%;"></a>
+      <a href="https://agatha-crispopartecombr.netlify.app/" target="_blank" class="hotspot" style="top:53.68%; left:19.08%; width:18.31%; height:12.19%;"></a>
+      <a href="https://maps.app.goo.gl/726QvQcXkcxg5xne6" target="_blank" class="hotspot" style="top:53.87%; left:41.62%; width:15.85%; height:12.57%;"></a>
+      <div class="hotspot" onclick="event.stopPropagation(); goToPage(3)" style="top:52.32%; left:62.04%; width:20.07%; height:14.31%;"></div>
         </div>
 
-        <div id="page-4" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/pag4.jpg_mbxjsn.jpg');">
-            <button class="btn-back" onclick="goToPage(3)">✕ Voltar</button>
+        <div id="page-4" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/pag4.jpg_mbxjsn.jpg'); cursor:pointer;" onclick="goToPage(3)">
+            <button class="btn-back" onclick="event.stopPropagation(); goToPage(3)">✕ Voltar</button>
 
         </div>
 
@@ -129,24 +120,19 @@
         const btnSound = document.getElementById('btn-sound');
         const isVideo = true;
 
-      // Lógica de Arrastar Livre
         let isDragging = false;
         let offsetX, offsetY;
 
-        // Captura o evento corretamente seja no rato (PC) ou no toque (Mobile)
         const getEvent = (e) => (e.touches && e.touches.length > 0) ? e.touches[0] : e;
 
         const startDrag = (e) => {
-            // Evita o "drag nativo" fantasma de imagens no navegador do computador
             if (e.type === 'mousedown') e.preventDefault(); 
-            
             isDragging = true;
-            dragEl.style.animation = 'none'; // Para de pulsar ao tocar
+            dragEl.style.animation = 'none';
             
             const evt = getEvent(e);
             const rect = dragEl.getBoundingClientRect();
             
-            // Pega a distância exata entre o clique e o canto do elemento
             offsetX = evt.clientX - rect.left;
             offsetY = evt.clientY - rect.top;
             
@@ -158,15 +144,10 @@
             if(e.cancelable) e.preventDefault();
             
             const evt = getEvent(e);
-            
-            // Onde o elemento deveria ficar em relação ao monitor inteiro
             const targetX = evt.clientX - offsetX;
             const targetY = evt.clientY - offsetY;
-            
-            // Descobre a posição atual do contêiner pai (.page) no monitor
             const parentRect = dragEl.parentElement.getBoundingClientRect();
             
-            // Subtrai a posição do pai para que o elemento não seja arremessado para fora no PC
             dragEl.style.left = (targetX - parentRect.left) + 'px';
             dragEl.style.top = (targetY - parentRect.top) + 'px';
             dragEl.style.bottom = 'auto';
@@ -176,13 +157,12 @@
         const endDrag = (e) => {
             if(!isDragging) return;
             isDragging = false;
-            dragEl.style.animation = 'pulsar 2s infinite ease-in-out'; // Volta a pulsar
+            dragEl.style.animation = 'pulsar 2s infinite ease-in-out';
 
             const rect = dragEl.getBoundingClientRect();
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             
-            // Verifica se chegou ao centro
             const distX = Math.abs((rect.left + rect.width/2) - centerX);
             const distY = Math.abs((rect.top + rect.height/2) - centerY);
             
@@ -192,7 +172,6 @@
             }
         };
 
-        // Eventos unificados
         dragEl.addEventListener('mousedown', startDrag);
         dragEl.addEventListener('touchstart', startDrag, {passive: false});
         window.addEventListener('mousemove', dragMove);
@@ -201,7 +180,6 @@
         window.addEventListener('touchend', endDrag);
 
         function goToPage(num) {
-            // Verifica se a página destino existe no código antes de tentar abrir
             const targetPage = document.getElementById('page-' + num);
             if (!targetPage) return; 
 
