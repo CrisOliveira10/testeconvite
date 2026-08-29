@@ -9,10 +9,17 @@
         body {
             background-color: #000;
             display: flex; justify-content: center; align-items: center;
-            height: 100dvh; overflow: hidden; font-family: sans-serif;
+            height: 100vh;
+            height: 100dvh; 
+            overflow: hidden; font-family: sans-serif;
         }
         .story-container {
-            width: 100%; max-width: 56.25dvh; height: 100dvh; position: relative; overflow: hidden;
+            width: 100%; 
+            max-width: 56.25vh;
+            max-width: 56.25dvh; 
+            height: 100vh;
+            height: 100dvh; 
+            position: relative; overflow: hidden;
         }
         .page {
             position: absolute; 
@@ -100,9 +107,9 @@
         </div>
 
         <div id="page-3" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/menu.jpg_kgwtuj.jpg');">
-      <a href="https://agatha-crispopartecombr.netlify.app/" target="_blank" class="hotspot" style="top:53.68%; left:19.08%; width:18.31%; height:12.19%;"></a>
-      <a href="https://maps.app.goo.gl/726QvQcXkcxg5xne6" target="_blank" class="hotspot" style="top:53.87%; left:41.62%; width:15.85%; height:12.57%;"></a>
-      <div class="hotspot" onclick="event.stopPropagation(); goToPage(4)" style="top:53.17%; left:62.04%; width:18.31%; height:12.96%;"></div>
+      <a href=" https://agatha-crispopartecombr.netlify.app/" target="_blank" class="hotspot" style="top:54.18%; left:22.36%; width:15.49%; height:12.77%;"></a>
+      <a href="https://maps.app.goo.gl/kRJF5FtbszjYeR8n7" target="_blank" class="hotspot" style="top:53.79%; left:41.02%; width:16.55%; height:16.83%;"></a>
+      <div class="hotspot" onclick="event.stopPropagation(); goToPage(4)" style="top:53.79%; left:64.61%; width:17.25%; height:16.05%;"></div>
         </div>
 
         <div id="page-4" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/pag4.jpg_mbxjsn.jpg'); cursor:pointer;" onclick="goToPage(3)">
@@ -191,7 +198,15 @@
                 if (isVideo) {
                     const vid = document.getElementById('video-p2');
                     vid.currentTime = 0;
-                    vid.play();
+                    
+                    // Tratamento de bloqueio de autoplay no iOS
+                    let playPromise = vid.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.log("Vídeo bloqueado pelo iOS, pulando página:", error);
+                            goToPage(3);
+                        });
+                    }
                     vid.onended = () => { goToPage(3) };
                 } else {
                     setTimeout(() => { if(document.getElementById('page-2').classList.contains('active')) goToPage(3); }, 5000);
