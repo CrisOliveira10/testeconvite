@@ -21,6 +21,8 @@
             height: 100dvh; 
             position: relative; overflow: hidden;
         }
+        
+        /* Uso intensivo de -webkit- para suportar iPhones de 10 anos atrás (iPhone 5/6) */
         .page {
             position: absolute; 
             top: 0; 
@@ -31,8 +33,14 @@
             background-position: center;
             opacity: 0; 
             visibility: hidden;
+            
+            -webkit-filter: blur(20px);
             filter: blur(20px); 
+            
+            -webkit-transform: scale(1.05); 
             transform: scale(1.05); 
+            
+            -webkit-transition: opacity 1s ease, -webkit-filter 1s ease, -webkit-transform 1s ease;
             transition: opacity 1s ease, filter 1s ease, transform 1s ease;
             z-index: 10;
         }
@@ -40,7 +48,9 @@
         .page.active { 
             opacity: 1; 
             visibility: visible;
+            -webkit-filter: blur(0px);
             filter: blur(0px);
+            -webkit-transform: scale(1);
             transform: scale(1);
         }
         
@@ -48,6 +58,7 @@
             position: fixed;
             bottom: 12%;
             left: 50%;
+            -webkit-transform: translateX(-50%);
             transform: translateX(-50%);
             width: 80px;
             height: 80px;
@@ -58,7 +69,14 @@
             z-index: 9999;
             cursor: grab;
             touch-action: none;
+            -webkit-animation: pulsar 2s infinite ease-in-out;
             animation: pulsar 2s infinite ease-in-out;
+        }
+
+        @-webkit-keyframes pulsar {
+            0% { -webkit-transform: translateX(-50%) scale(1); -webkit-filter: brightness(1); }
+            50% { -webkit-transform: translateX(-50%) scale(1.1); -webkit-filter: brightness(1.2); }
+            100% { -webkit-transform: translateX(-50%) scale(1); -webkit-filter: brightness(1); }
         }
 
         @keyframes pulsar {
@@ -76,7 +94,9 @@
         .control-btn {
             pointer-events: auto; padding: 10px 20px; border-radius: 30px;
             background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.3);
-            font-size: 12px; font-weight: bold; cursor: pointer; backdrop-filter: blur(4px);
+            font-size: 12px; font-weight: bold; cursor: pointer; 
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
         }
 
         .hotspot { position: absolute; z-index: 40; cursor: pointer; }
@@ -89,7 +109,7 @@
 </head>
 <body>
 
-    <audio id="bg-music" src="audio.mp3" loop playsinline></audio>
+    <audio id="bg-music" src="audio.mp3" loop playsinline preload="auto"></audio>
 
     <div class="story-container">
         
@@ -103,13 +123,13 @@
         </div>
 
         <div id="page-2" class="page" style="background-color: #000;">
-            <video id="video-p2" src="video_intro.mp4" playsinline webkit-playsinline></video>
+            <video id="video-p2" src="video_intro.mp4" playsinline webkit-playsinline preload="auto"></video>
         </div>
 
         <div id="page-3" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/menu.jpg_kgwtuj.jpg');">
-      <a href=" https://agatha-crispopartecombr.netlify.app/" target="_blank" class="hotspot" style="top:54.18%; left:22.36%; width:15.49%; height:12.77%;"></a>
-      <a href="https://maps.app.goo.gl/kRJF5FtbszjYeR8n7" target="_blank" class="hotspot" style="top:53.79%; left:41.02%; width:16.55%; height:16.83%;"></a>
-      <div class="hotspot" onclick="event.stopPropagation(); goToPage(4)" style="top:53.79%; left:64.61%; width:17.25%; height:16.05%;"></div>
+      <a href="https://crispoparte.com.br/confirmarmelissa/" target="_blank" class="hotspot" style="top:52.83%; left:18.84%; width:19.37%; height:12.77%;"></a>
+      <div class="hotspot" onclick="event.stopPropagation(); goToPage(4)" style="top:53.21%; left:62.15%; width:20.07%; height:12.57%;"></div>
+      <a href="https://maps.app.goo.gl/pAwaVCFZuan2GFo77" target="_blank" class="hotspot" style="top:52.63%; left:40.67%; width:18.66%; height:15.28%;"></a>
         </div>
 
         <div id="page-4" class="page" style="background-image: url('https://res.cloudinary.com/dtshawz5x/image/upload/v1788027096/pag4.jpg_mbxjsn.jpg'); cursor:pointer;" onclick="goToPage(3)">
@@ -121,63 +141,101 @@
     </div>
 
     <script>
-        const audio = document.getElementById('bg-music');
-        const dragEl = document.getElementById('drag-el');
-        const btnSkip = document.getElementById('btn-skip');
-        const btnSound = document.getElementById('btn-sound');
-        const isVideo = true;
+        // Utilizando "var" e "function" padrão para máxima compatibilidade em dispositivos legados.
+        var audio = document.getElementById('bg-music');
+        var dragEl = document.getElementById('drag-el');
+        var btnSkip = document.getElementById('btn-skip');
+        var btnSound = document.getElementById('btn-sound');
+        var isVideo = true;
 
-        let isDragging = false;
-        let offsetX, offsetY;
+        // ESTRATÉGIA DE DESTRAVAMENTO DE MÍDIA GLOBAL (Xiaomi, iOS 17+, etc)
+        var mediaUnlocked = false;
+        function unlockMedia() {
+            if (mediaUnlocked) return;
+            mediaUnlocked = true;
+            
+            // Um play e pause imediato força o navegador a liberar o áudio/vídeo
+            var playAudioPromise = audio.play();
+            if (playAudioPromise !== undefined) {
+                playAudioPromise.then(function() { audio.pause(); }).catch(function(e) {});
+            }
+            
+            if (isVideo) {
+                var vid = document.getElementById('video-p2');
+                if (vid) {
+                    var playVidPromise = vid.play();
+                    if (playVidPromise !== undefined) {
+                        playVidPromise.then(function() { vid.pause(); }).catch(function(e) {});
+                    }
+                }
+            }
+            
+            window.removeEventListener('touchstart', unlockMedia);
+            window.removeEventListener('mousedown', unlockMedia);
+        }
+        
+        // O primeiro toque do usuário em qualquer lugar da tela destrava tudo silenciosamente
+        window.addEventListener('touchstart', unlockMedia, { passive: true });
+        window.addEventListener('mousedown', unlockMedia, { passive: true });
 
-        const getEvent = (e) => (e.touches && e.touches.length > 0) ? e.touches[0] : e;
+        var isDragging = false;
+        var offsetX, offsetY;
 
-        const startDrag = (e) => {
+        function getEvent(e) {
+            return (e.touches && e.touches.length > 0) ? e.touches[0] : e;
+        }
+
+        function startDrag(e) {
             if (e.type === 'mousedown') e.preventDefault(); 
             isDragging = true;
             dragEl.style.animation = 'none';
+            dragEl.style.webkitAnimation = 'none';
             
-            const evt = getEvent(e);
-            const rect = dragEl.getBoundingClientRect();
+            var evt = getEvent(e);
+            var rect = dragEl.getBoundingClientRect();
             
             offsetX = evt.clientX - rect.left;
             offsetY = evt.clientY - rect.top;
             
             dragEl.style.transition = 'none';
-        };
+            dragEl.style.webkitTransition = 'none';
+        }
 
-        const dragMove = (e) => {
+        function dragMove(e) {
             if(!isDragging) return;
             if(e.cancelable) e.preventDefault();
             
-            const evt = getEvent(e);
-            const targetX = evt.clientX - offsetX;
-            const targetY = evt.clientY - offsetY;
-            const parentRect = dragEl.parentElement.getBoundingClientRect();
+            var evt = getEvent(e);
+            var targetX = evt.clientX - offsetX;
+            var targetY = evt.clientY - offsetY;
+            var parentRect = dragEl.parentElement.getBoundingClientRect();
             
             dragEl.style.left = (targetX - parentRect.left) + 'px';
             dragEl.style.top = (targetY - parentRect.top) + 'px';
             dragEl.style.bottom = 'auto';
-            dragEl.style.transform = 'none'; 
-        };
+            dragEl.style.transform = 'none';
+            dragEl.style.webkitTransform = 'none';
+        }
 
-        const endDrag = (e) => {
+        function endDrag(e) {
             if(!isDragging) return;
             isDragging = false;
             dragEl.style.animation = 'pulsar 2s infinite ease-in-out';
+            dragEl.style.webkitAnimation = 'pulsar 2s infinite ease-in-out';
 
-            const rect = dragEl.getBoundingClientRect();
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+            var rect = dragEl.getBoundingClientRect();
+            var centerX = window.innerWidth / 2;
+            var centerY = window.innerHeight / 2;
             
-            const distX = Math.abs((rect.left + rect.width/2) - centerX);
-            const distY = Math.abs((rect.top + rect.height/2) - centerY);
+            var distX = Math.abs((rect.left + rect.width/2) - centerX);
+            var distY = Math.abs((rect.top + rect.height/2) - centerY);
             
             if (distX < 100 && distY < 100) {
-                 audio.play().catch(e => console.log(e));
+                 // Agora toca 100% das vezes graças ao unlockMedia()
+                 audio.play().catch(function(e) { console.log(e); });
                  goToPage(2);
             }
-        };
+        }
 
         dragEl.addEventListener('mousedown', startDrag);
         dragEl.addEventListener('touchstart', startDrag, {passive: false});
@@ -187,35 +245,39 @@
         window.addEventListener('touchend', endDrag);
 
         function goToPage(num) {
-            const targetPage = document.getElementById('page-' + num);
+            var targetPage = document.getElementById('page-' + num);
             if (!targetPage) return; 
 
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            var pages = document.querySelectorAll('.page');
+            for(var i = 0; i < pages.length; i++) {
+                pages[i].classList.remove('active');
+            }
             targetPage.classList.add('active');
 
             if (num === 2) {
                 btnSkip.style.display = 'block';
                 if (isVideo) {
-                    const vid = document.getElementById('video-p2');
+                    var vid = document.getElementById('video-p2');
                     vid.currentTime = 0;
                     
-                    // Tratamento de bloqueio de autoplay no iOS
-                    let playPromise = vid.play();
+                    var playPromise = vid.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            console.log("Vídeo bloqueado pelo iOS, pulando página:", error);
+                        playPromise.catch(function(error) {
+                            console.log("Vídeo bloqueado pelo iOS antigo, pulando página:", error);
                             goToPage(3);
                         });
                     }
-                    vid.onended = () => { goToPage(3) };
+                    vid.onended = function() { goToPage(3); };
                 } else {
-                    setTimeout(() => { if(document.getElementById('page-2').classList.contains('active')) goToPage(3); }, 5000);
+                    setTimeout(function() { 
+                        if(document.getElementById('page-2').classList.contains('active')) goToPage(3); 
+                    }, 5000);
                 }
             } else {
                 btnSkip.style.display = 'none';
                 if(isVideo) {
-                    const vid = document.getElementById('video-p2');
-                    if(vid) vid.pause();
+                    var vidEl = document.getElementById('video-p2');
+                    if(vidEl) vidEl.pause();
                 }
             }
         }
